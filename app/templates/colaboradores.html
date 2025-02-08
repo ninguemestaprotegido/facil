@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Colaboradores</h2>
+
+<!-- 📌 Formulário para Adicionar -->
+<form method="POST" class="mb-4 p-4 bg-white shadow rounded">
+    <div class="mb-3">
+        <label class="form-label">Nome</label>
+        <input type="text" name="nome" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Cargo</label>
+        <input type="text" name="cargo" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success">Salvar</button>
+</form>
+
+<!-- 📌 Tabela -->
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Cargo</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for colaborador in colaboradores %}
+        <tr>
+            <td>{{ colaborador.id }}</td>
+            <td>{{ colaborador.nome }}</td>
+            <td>{{ colaborador.cargo }}</td>
+            <td>
+                <a href="{{ url_for('main.edit_colaborador', id=colaborador.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                <form action="{{ url_for('main.delete_colaborador', id=colaborador.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Deseja excluir?')">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

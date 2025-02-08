@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Editar Colaborador</h2>
+<form method="POST">
+    <input type="text" name="nome" value="{{ colaborador.nome }}" required>
+    <input type="text" name="cargo" value="{{ colaborador.cargo }}" required>
+    <button type="submit">Salvar</button>
+</form>
+<a href="{{ url_for('main.colaboradores') }}">Cancelar</a>
+{% endblock %}

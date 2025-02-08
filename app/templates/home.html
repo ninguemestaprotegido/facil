@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Home</h2>
+
+<!-- 📌 Filtros -->
+<form method="GET" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="nome" class="form-control" placeholder="Nome (opcional)" value="{{ request.args.get('nome', '') }}">
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="data_inicial" class="form-control" value="{{ request.args.get('data_inicial', '') }}">
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="data_final" class="form-control" value="{{ request.args.get('data_final', '') }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</form>
+
+<!-- 📌 Botão para Exportação -->
+<form method="GET" action="{{ url_for('main.exportar_excel') }}" class="mb-4">
+    <button type="submit" class="btn btn-outline-success">Exportar para Excel</button>
+</form>
+
+<!-- 📌 Exibição da média -->
+{% if media is not none %}
+<p class="alert alert-info">Média do período selecionado: <strong>{{ "%.2f" | format(media) }}%</strong></p>
+{% else %}
+<p class="alert alert-warning">Nenhum dado encontrado para o período selecionado.</p>
+{% endif %}
+
+<!-- 📌 Top 3 Dinâmico -->
+<div class="row">
+    <div class="col-md-6">
+        <h3>TOP 3 Melhores</h3>
+        <ul class="list-group">
+            {% if top_melhores_filtrados %}
+                {% for item in top_melhores_filtrados %}
+                <li class="list-group-item d-flex justify-content-between">
+                    {{ item[0] }} <span class="badge bg-success">{{ "%.2f" | format(item[1]) }}%</span>
+                </li>
+                {% endfor %}
+            {% else %}
+                {% for item in top_melhores_geral %}
+                <li class="list-group-item d-flex justify-content-between">
+                    {{ item[0] }} <span class="badge bg-success">{{ "%.2f" | format(item[1]) }}%</span>
+                </li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h3>TOP 3 Piores</h3>
+        <ul class="list-group">
+            {% if top_piores_filtrados %}
+                {% for item in top_piores_filtrados %}
+                <li class="list-group-item d-flex justify-content-between">
+                    {{ item[0] }} <span class="badge bg-danger">{{ "%.2f" | format(item[1]) }}%</span>
+                </li>
+                {% endfor %}
+            {% else %}
+                {% for item in top_piores_geral %}
+                <li class="list-group-item d-flex justify-content-between">
+                    {{ item[0] }} <span class="badge bg-danger">{{ "%.2f" | format(item[1]) }}%</span>
+                </li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<!-- 📌 Tabela de Resultados -->
+<table class="table table-bordered mt-4">
+    <thead class="table-dark">
+        <tr>
+            <th>Data</th>
+            <th>Funcionário</th>
+            <th>Refile (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for resultado in resultados %}
+        <tr>
+            <td>{{ resultado.data.strftime('%d/%m/%Y') }}</td>
+            <td>{{ resultado.nome }}</td>
+            <td>
+                <!-- Adiciona a bolinha de cor com base no valor -->
+                <span style="height: 10px; width: 10px; display: inline-block; border-radius: 50%; margin-right: 8px; background-color: 
+                    {% if resultado.refile >= 70 %} green 
+                    {% elif 60 <= resultado.refile < 70 %} yellow 
+                    {% else %} red {% endif %};">
+                </span>
+                {{ "%.2f" | format(resultado.refile) }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
