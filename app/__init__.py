@@ -2,6 +2,7 @@ import os
 from flask import Flask, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy.exc import OperationalError
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -33,8 +34,13 @@ def create_app():
         if 'user_id' not in session and request.endpoint not in open_endpoints:
             return redirect(url_for('auth.login'))
 
-    # Criação automática das tabelas se não existirem
+    # Roda as migrações automaticamente quando a aplicação inicia
     with app.app_context():
-        db.create_all()
+        try:
+            from flask_migrate import upgrade
+            upgrade()
+            print("Migração aplicada com sucesso!")
+        except OperationalError:
+            print("Erro ao aplicar migração. Talvez o banco ainda não esteja pronto.")
 
     return app
