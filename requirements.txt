@@ -1,2 +1,5 @@
-gunicorn==23.0.0
-packaging==24.2
+flask
+gunicorn
+flask_sqlalchemy
+flask_migrate
+
