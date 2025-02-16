@@ -1,11 +1,12 @@
-import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, send_file
-from .models import Importacao, Colaborador, db
+from flask import Blueprint, session, render_template, request, redirect, url_for, send_file
+from app.models import Importacao, Colaborador, db
 from sqlalchemy import func
+import datetime
 from io import BytesIO
 from openpyxl import Workbook
 
 main = Blueprint('main', __name__)
+
 
 # Página HOME (filtros, TOP 3, média)
 @main.route('/', methods=['GET'])
@@ -16,8 +17,12 @@ def home():
 
     # Query inicial para resultados filtrados
     query = Importacao.query.join(Colaborador).add_columns(
-        Colaborador.nome, Importacao.data, Importacao.refile
-    )
+    Importacao.id,  # Include the ID field
+    Colaborador.nome,
+    Importacao.data,
+    Importacao.refile
+)
+
 
     if nome:
         query = query.filter(Colaborador.nome.ilike(f"%{nome}%"))
@@ -28,6 +33,9 @@ def home():
 
     resultados = query.all()
 
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
     # Calcular a média somente para os resultados filtrados
     media = sum(r.refile for r in resultados) / len(resultados) if resultados else None
 
@@ -88,6 +96,20 @@ def home():
         top_melhores_geral=top_melhores_geral,
         top_piores_geral=top_piores_geral,
     )
+
+
+# Botao pra deletar coisas adicionadas de forma errada no home
+@main.route('/delete/<int:id>', methods=['POST'])
+def delete_result(id):
+    # Get the record from the database
+    resultado = Importacao.query.get_or_404(id)
+
+    # Delete from database
+    db.session.delete(resultado)
+    db.session.commit()
+
+    # Redirect back to home after deleting
+    return redirect(url_for('main.home'))
 
 
 # Exportação para Excel

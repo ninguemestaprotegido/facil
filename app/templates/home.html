@@ -77,6 +77,7 @@
             <th>Data</th>
             <th>Funcionário</th>
             <th>Refile (%)</th>
+            <th>Ações</th> <!-- Column for Delete Button -->
         </tr>
     </thead>
     <tbody>
@@ -85,13 +86,19 @@
             <td>{{ resultado.data.strftime('%d/%m/%Y') }}</td>
             <td>{{ resultado.nome }}</td>
             <td>
-                <!-- Adiciona a bolinha de cor com base no valor -->
                 <span style="height: 10px; width: 10px; display: inline-block; border-radius: 50%; margin-right: 8px; background-color: 
                     {% if resultado.refile >= 70 %} green 
                     {% elif 60 <= resultado.refile < 70 %} yellow 
                     {% else %} red {% endif %};">
                 </span>
                 {{ "%.2f" | format(resultado.refile) }}
+            </td>
+            <td>
+                <!-- BOTAO PRA AJUDAR IDIOTAS QUE NAO SABEM ESCREVER -->
+                <form method="POST" action="{{ url_for('main.delete_result', id=resultado.id) }}" 
+                      onsubmit="return confirm('Vai deletar mesmo?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
             </td>
         </tr>
         {% endfor %}
