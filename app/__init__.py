@@ -12,14 +12,10 @@ def create_app():
 
     # Obtendo a URL do banco de dados do ambiente
     database_url = os.getenv('DATABASE_URL')
-
-    if not database_url:
-        raise ValueError("DATABASE_URL não foi encontrada. Verifique as variáveis de ambiente.")
-
-    if database_url.startswith("postgres://"):
+    if database_url and database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///app.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
@@ -36,5 +32,9 @@ def create_app():
         open_endpoints = ['auth.login', 'auth.register']
         if 'user_id' not in session and request.endpoint not in open_endpoints:
             return redirect(url_for('auth.login'))
+
+    # Criação automática das tabelas se não existirem
+    with app.app_context():
+        db.create_all()
 
     return app
