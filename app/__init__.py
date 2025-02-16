@@ -1,17 +1,24 @@
+import os
 from flask import Flask, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-db = SQLAlchemy()  
+db = SQLAlchemy()
 migrate = Migrate()
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
     app.config['SECRET_KEY'] = 'your_secret_key_here'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+
+    # Obtendo a URL do banco de dados do ambiente
+    database_url = os.getenv('DATABASE_URL')
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///app.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    db.init_app(app)  
+    db.init_app(app)
     migrate.init_app(app, db)
 
     from app.routes import main
@@ -22,13 +29,8 @@ def create_app():
 
     @app.before_request
     def check_user_logged_in():
-        # Define which endpoints are accessible without authentication
-        open_endpoints = ['auth.login', 'auth.register']  # Add more if needed
-
+        open_endpoints = ['auth.login', 'auth.register']
         if 'user_id' not in session and request.endpoint not in open_endpoints:
             return redirect(url_for('auth.login'))
-
-    with app.app_context():  
-        db.create_all()  
 
     return app
