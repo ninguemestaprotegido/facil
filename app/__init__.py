@@ -17,8 +17,8 @@ def create_app():
 
     # Configuração do Banco de Dados
     database_url = os.getenv('DATABASE_URL')
-    if database_url and database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    if database_url and database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql://", 1)
 
     if not database_url:
         database_url = "sqlite:///app.db"
