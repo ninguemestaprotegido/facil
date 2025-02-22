@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="mb-4">Importações</h2>
+<h2 class="mb-4">Lançamento de dados</h2>
 
-<!-- Formulário -->
-<form method="POST" class="mb-4 p-4 bg-white shadow rounded">
+<!-- 📌 Formulário de Lançamento -->
+<form method="POST" class="mb-5 p-4 bg-white shadow rounded">
     <div class="mb-3">
         <label class="form-label">Data</label>
-        <input type="date" name="data" class="form-control" required>
+        <input type="date" name="data" class="form-control" required value="{{ data_selecionada or '' }}">
     </div>
     <div class="mb-3">
         <label class="form-label">Funcionário</label>
@@ -22,4 +22,31 @@
     </div>
     <button type="submit" class="btn btn-success">Salvar</button>
 </form>
+
+<!-- 📌 Espaço extra entre o formulário e a tabela -->
+<div style="height: 300px;"></div>
+
+<!-- 📌 Lista de Importações -->
+<div class="mt-5" id="tabela-importacoes">
+    <h3 class="mb-4">Registros de Importações</h3>
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Data</th>
+                <th>Funcionário</th>
+                <th>Refile (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for importacao in importacoes %}
+            <tr>
+                <td>{{ importacao.data.strftime('%d/%m/%Y') }}</td>
+                <td>{{ importacao.colaborador.nome }}</td>
+                <td>{{ "%.2f" | format(importacao.refile) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}

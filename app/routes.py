@@ -4,6 +4,9 @@ from sqlalchemy import func
 import datetime
 from io import BytesIO
 from openpyxl import Workbook
+import pandas as pd
+from flask import send_file
+import os
 
 main = Blueprint('main', __name__)
 
@@ -12,89 +15,53 @@ main = Blueprint('main', __name__)
 @main.route('/', methods=['GET'])
 def home():
     nome = request.args.get('nome', '').strip()
+    cargo = request.args.get('cargo', '').strip()
     data_inicial = request.args.get('data_inicial')
     data_final = request.args.get('data_final')
+    ordenar = request.args.get('ordenar', 'desc')  # Ordenação padrão descendente
 
-    # Query inicial para resultados filtrados
-    query = Importacao.query.join(Colaborador).add_columns(
-    Importacao.id,  # Include the ID field
-    Colaborador.nome,
-    Importacao.data,
-    Importacao.refile
-)
+    # Query base para médias
+    query = db.session.query(
+        Colaborador.nome,
+        Colaborador.cargo,
+        func.avg(Importacao.refile).label('media_refile')
+    ).join(Importacao).group_by(Colaborador.id)
 
-
+    # Aplicar filtros
     if nome:
         query = query.filter(Colaborador.nome.ilike(f"%{nome}%"))
+    if cargo:
+        query = query.filter(Colaborador.cargo.ilike(f"%{cargo}%"))
     if data_inicial:
         query = query.filter(Importacao.data >= datetime.datetime.strptime(data_inicial, '%Y-%m-%d').date())
     if data_final:
         query = query.filter(Importacao.data <= datetime.datetime.strptime(data_final, '%Y-%m-%d').date())
 
-    resultados = query.all()
+    # Aplicar ordenação
+    if ordenar == 'asc':
+        query = query.order_by(func.avg(Importacao.refile).asc())
+    else:
+        query = query.order_by(func.avg(Importacao.refile).desc())
+
+    medias_colaboradores = query.all()
 
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    
-    # Calcular a média somente para os resultados filtrados
-    media = sum(r.refile for r in resultados) / len(resultados) if resultados else None
 
-    # TOP 3 com filtros aplicados
-    top_melhores_filtrados = (
-        db.session.query(Colaborador.nome, func.avg(Importacao.refile).label('media_refile'))
-        .join(Importacao)
-        .group_by(Colaborador.id)
-        .order_by(func.avg(Importacao.refile).desc())
-        .filter(
-            Colaborador.nome.ilike(f"%{nome}%") if nome else True,
-            Importacao.data >= datetime.datetime.strptime(data_inicial, '%Y-%m-%d').date() if data_inicial else True,
-            Importacao.data <= datetime.datetime.strptime(data_final, '%Y-%m-%d').date() if data_final else True
-        )
-        .limit(3)
-        .all()
-    )
+    # Cálculo da média geral
+    media = sum([c.media_refile for c in medias_colaboradores]) / len(medias_colaboradores) if medias_colaboradores else None
 
-    top_piores_filtrados = (
-        db.session.query(Colaborador.nome, func.avg(Importacao.refile).label('media_refile'))
-        .join(Importacao)
-        .group_by(Colaborador.id)
-        .order_by(func.avg(Importacao.refile))
-        .filter(
-            Colaborador.nome.ilike(f"%{nome}%") if nome else True,
-            Importacao.data >= datetime.datetime.strptime(data_inicial, '%Y-%m-%d').date() if data_inicial else True,
-            Importacao.data <= datetime.datetime.strptime(data_final, '%Y-%m-%d').date() if data_final else True
-        )
-        .limit(3)
-        .all()
-    )
-
-    # TOP 3 gerais (sem filtros)
-    top_melhores_geral = (
-        db.session.query(Colaborador.nome, func.avg(Importacao.refile).label('media_refile'))
-        .join(Importacao)
-        .group_by(Colaborador.id)
-        .order_by(func.avg(Importacao.refile).desc())
-        .limit(3)
-        .all()
-    )
-
-    top_piores_geral = (
-        db.session.query(Colaborador.nome, func.avg(Importacao.refile).label('media_refile'))
-        .join(Importacao)
-        .group_by(Colaborador.id)
-        .order_by(func.avg(Importacao.refile))
-        .limit(3)
-        .all()
-    )
+    # Calcular Top 3 e Last 3 aplicando os mesmos filtros
+    top_3 = medias_colaboradores[:3]
+    last_3 = medias_colaboradores[-3:]
 
     return render_template(
         'home.html',
-        resultados=resultados,
+        medias_colaboradores=medias_colaboradores,
         media=media,
-        top_melhores_filtrados=top_melhores_filtrados,
-        top_piores_filtrados=top_piores_filtrados,
-        top_melhores_geral=top_melhores_geral,
-        top_piores_geral=top_piores_geral,
+        top_3=top_3,
+        last_3=last_3,
+        ordenar=ordenar
     )
 
 
@@ -113,49 +80,49 @@ def delete_result(id):
 
 
 # Exportação para Excel
-@main.route('/exportar', methods=['GET'])
+@main.route('/exportar_excel', methods=['GET'])
 def exportar_excel():
-    nome = request.args.get('nome')
+    nome = request.args.get('nome', '').strip()
+    cargo = request.args.get('cargo', '').strip()
     data_inicial = request.args.get('data_inicial')
     data_final = request.args.get('data_final')
 
-    query = Importacao.query.join(Colaborador).add_columns(
-        Colaborador.nome, Importacao.data, Importacao.refile
-    )
+    # Query base
+    query = db.session.query(
+        Colaborador.nome,
+        Colaborador.cargo,
+        func.avg(Importacao.refile).label('media_refile')
+    ).join(Importacao).group_by(Colaborador.id)
 
+    # Aplicar filtros
     if nome:
         query = query.filter(Colaborador.nome.ilike(f"%{nome}%"))
+    if cargo:
+        query = query.filter(Colaborador.cargo.ilike(f"%{cargo}%"))
     if data_inicial:
-        query = query.filter(Importacao.data >= datetime.datetime.strptime(data_inicial, '%Y-%m-%d'))
+        query = query.filter(Importacao.data >= datetime.datetime.strptime(data_inicial, '%Y-%m-%d').date())
     if data_final:
-        query = query.filter(Importacao.data <= datetime.datetime.strptime(data_final, '%Y-%m-%d'))
+        query = query.filter(Importacao.data <= datetime.datetime.strptime(data_final, '%Y-%m-%d').date())
 
+    # Obter resultados
     resultados = query.all()
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Importações"
+    # Converter para DataFrame
+    data = [{
+        'Funcionário': r.nome,
+        'Cargo': r.cargo,
+        'Média Refile (%)': round(r.media_refile, 2)
+    } for r in resultados]
 
-    ws.append(["Data", "Funcionário", "Refile (%)"])
+    df = pd.DataFrame(data)
 
-    for resultado in resultados:
-        ws.append([
-            resultado.data.strftime('%d/%m/%Y'),
-            resultado.nome,
-            resultado.refile
-        ])
+    # Salvar o Excel no caminho absoluto
+    output_folder = os.path.join(os.getcwd(), 'app')  # Garante que será salvo no diretório do app
+    file_path = os.path.join(output_folder, 'export_resumo_resultados.xlsx')
+    df.to_excel(file_path, index=False)
 
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name="importacoes.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
+    # Enviar o arquivo para download
+    return send_file(file_path, as_attachment=True)
 
 # Rota para colaboradores
 @main.route('/colaboradores', methods=['GET', 'POST'])
@@ -212,6 +179,7 @@ def delete_colaborador(id):
 # Rota para importações
 @main.route('/importacoes', methods=['GET', 'POST'])
 def importacoes():
+    data_selecionada = ''
     if request.method == 'POST':
         data = request.form.get('data')
         funcionario_id = request.form.get('funcionario')
@@ -228,8 +196,47 @@ def importacoes():
         db.session.add(nova_importacao)
         db.session.commit()
 
-        return redirect(url_for('main.importacoes'))
+        data_selecionada = data  # Armazena a data selecionada
 
     colaboradores = Colaborador.query.all()
     importacoes = Importacao.query.order_by(Importacao.data.desc()).all()
-    return render_template('importacoes.html', colaboradores=colaboradores, importacoes=importacoes)
+    return render_template('importacoes.html', colaboradores=colaboradores, importacoes=importacoes, data_selecionada=data_selecionada)
+
+
+#rota para a nova guia "Feedback Funcionário"
+@main.route('/feedback', methods=['GET'])
+def feedback_funcionario():
+    nome = request.args.get('nome', '').strip()
+    data_inicial = request.args.get('data_inicial')
+    data_final = request.args.get('data_final')
+
+    # Query inicial para resultados filtrados
+    query = Importacao.query.join(Colaborador).add_columns(
+        Importacao.id,
+        Colaborador.nome,
+        Colaborador.cargo,
+        Importacao.data,
+        Importacao.refile
+    )
+
+    # Filtros aplicados
+    if nome:
+        query = query.filter(Colaborador.nome.ilike(f"%{nome}%"))
+    if data_inicial:
+        query = query.filter(Importacao.data >= datetime.datetime.strptime(data_inicial, '%Y-%m-%d').date())
+    if data_final:
+        query = query.filter(Importacao.data <= datetime.datetime.strptime(data_final, '%Y-%m-%d').date())
+
+    resultados = query.all()
+
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    # Calcular a média dos resultados filtrados
+    media = sum(r.refile for r in resultados) / len(resultados) if resultados else None
+
+    return render_template(
+        'feedback.html',
+        resultados=resultados,
+        media=media
+    )

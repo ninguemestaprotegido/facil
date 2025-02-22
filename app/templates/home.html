@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="mb-4">Home</h2>
+<h2 class="mb-4">Resumo Resultados</h2>
 
 <!-- 📌 Filtros -->
 <form method="GET" class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <input type="text" name="nome" class="form-control" placeholder="Nome (opcional)" value="{{ request.args.get('nome', '') }}">
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="cargo" class="form-control" placeholder="Cargo (opcional)" value="{{ request.args.get('cargo', '') }}">
     </div>
     <div class="col-md-3">
         <input type="date" name="data_inicial" class="form-control" value="{{ request.args.get('data_inicial', '') }}">
@@ -18,91 +21,96 @@
     </div>
 </form>
 
-<!-- 📌 Botão para Exportação -->
+<!-- 📌 Botão de Exportar para Excel -->
 <form method="GET" action="{{ url_for('main.exportar_excel') }}" class="mb-4">
+    <input type="hidden" name="nome" value="{{ request.args.get('nome', '') }}">
+    <input type="hidden" name="cargo" value="{{ request.args.get('cargo', '') }}">
+    <input type="hidden" name="data_inicial" value="{{ request.args.get('data_inicial', '') }}">
+    <input type="hidden" name="data_final" value="{{ request.args.get('data_final', '') }}">
     <button type="submit" class="btn btn-outline-success">Exportar para Excel</button>
 </form>
 
-<!-- 📌 Exibição da média -->
+<!-- 📌 Exibição da média geral -->
 {% if media is not none %}
-<p class="alert alert-info">Média do período selecionado: <strong>{{ "%.2f" | format(media) }}%</strong></p>
+<p class="alert alert-info">Média Geral do período selecionado: <strong>{{ "%.2f" | format(media) }}%</strong></p>
 {% else %}
 <p class="alert alert-warning">Nenhum dado encontrado para o período selecionado.</p>
 {% endif %}
 
-<!-- 📌 Top 3 Dinâmico -->
-<div class="row">
+<!-- 📌 Top 3 e Last 3 - Agora acima da tabela -->
+<div class="row mt-5">
     <div class="col-md-6">
-        <h3>TOP 3 Melhores</h3>
+        <h3>Top 3</h3>
         <ul class="list-group">
-            {% if top_melhores_filtrados %}
-                {% for item in top_melhores_filtrados %}
-                <li class="list-group-item d-flex justify-content-between">
-                    {{ item[0] }} <span class="badge bg-success">{{ "%.2f" | format(item[1]) }}%</span>
-                </li>
-                {% endfor %}
-            {% else %}
-                {% for item in top_melhores_geral %}
-                <li class="list-group-item d-flex justify-content-between">
-                    {{ item[0] }} <span class="badge bg-success">{{ "%.2f" | format(item[1]) }}%</span>
-                </li>
-                {% endfor %}
-            {% endif %}
+            {% for item in top_3 %}
+            <li class="list-group-item d-flex justify-content-between">
+                {{ item.nome }} <span class="badge bg-success">{{ "%.2f" | format(item.media_refile) }}%</span>
+            </li>
+            {% endfor %}
         </ul>
     </div>
     <div class="col-md-6">
-        <h3>TOP 3 Piores</h3>
+        <h3>Last 3</h3>
         <ul class="list-group">
-            {% if top_piores_filtrados %}
-                {% for item in top_piores_filtrados %}
-                <li class="list-group-item d-flex justify-content-between">
-                    {{ item[0] }} <span class="badge bg-danger">{{ "%.2f" | format(item[1]) }}%</span>
-                </li>
-                {% endfor %}
-            {% else %}
-                {% for item in top_piores_geral %}
-                <li class="list-group-item d-flex justify-content-between">
-                    {{ item[0] }} <span class="badge bg-danger">{{ "%.2f" | format(item[1]) }}%</span>
-                </li>
-                {% endfor %}
-            {% endif %}
+            {% for item in last_3 %}
+            <li class="list-group-item d-flex justify-content-between">
+                {{ item.nome }} <span class="badge bg-danger">{{ "%.2f" | format(item.media_refile) }}%</span>
+            </li>
+            {% endfor %}
         </ul>
     </div>
 </div>
 
-<!-- 📌 Tabela de Resultados -->
-<table class="table table-bordered mt-4">
+<!-- 📌 Tabela com Média por Funcionário -->
+<table class="table table-bordered mt-4" id="resumoTable">
     <thead class="table-dark">
         <tr>
-            <th>Data</th>
             <th>Funcionário</th>
-            <th>Refile (%)</th>
-            <th>Ações</th> <!-- Column for Delete Button -->
+            <th>Cargo</th>
+            <th onclick="sortTableByRefile()" style="cursor: pointer;">
+                Média Refile (%) <span id="sortIcon">⇅</span>
+            </th>
         </tr>
     </thead>
     <tbody>
-        {% for resultado in resultados %}
+        {% for colaborador in medias_colaboradores %}
         <tr>
-            <td>{{ resultado.data.strftime('%d/%m/%Y') }}</td>
-            <td>{{ resultado.nome }}</td>
+            <td>{{ colaborador.nome }}</td>
+            <td>{{ colaborador.cargo }}</td>
             <td>
                 <span style="height: 10px; width: 10px; display: inline-block; border-radius: 50%; margin-right: 8px; background-color: 
-                    {% if resultado.refile >= 70 %} green 
-                    {% elif 60 <= resultado.refile < 70 %} yellow 
+                    {% if colaborador.media_refile >= 70 %} green 
+                    {% elif 60 <= colaborador.media_refile < 70 %} yellow 
                     {% else %} red {% endif %};">
                 </span>
-                {{ "%.2f" | format(resultado.refile) }}
-            </td>
-            <td>
-                <!-- BOTAO PRA AJUDAR IDIOTAS QUE NAO SABEM ESCREVER -->
-                <form method="POST" action="{{ url_for('main.delete_result', id=resultado.id) }}" 
-                      onsubmit="return confirm('Vai deletar mesmo?');">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
+                {{ "%.2f" | format(colaborador.media_refile) }}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- JavaScript para ordenação -->
+<script>
+let isAscending = true;
+
+function sortTableByRefile() {
+    const table = document.getElementById("resumoTable");
+    const rows = Array.from(table.rows).slice(1); // Exclui o cabeçalho
+
+    rows.sort((a, b) => {
+        const refA = parseFloat(a.cells[2].innerText) || 0;
+        const refB = parseFloat(b.cells[2].innerText) || 0;
+        return isAscending ? refA - refB : refB - refA;
+    });
+
+    isAscending = !isAscending; // Alterna a ordenação
+    document.getElementById("sortIcon").innerText = isAscending ? "↑" : "↓";
+
+    const tbody = table.querySelector("tbody");
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
 
 {% endblock %}

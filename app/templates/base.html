@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JBS</title>
+    <title>Caxias Perus - Gestão de Refiles</title>
     
     <!-- Bootstrap CSS -->
     <link 
@@ -17,12 +17,13 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.home') }}">JBS</a>
+            <a class="navbar-brand" href="{{ url_for('main.home') }}">Caxias Perus - Gestão de Refiles</a>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.home') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.colaboradores') }}">Colaboradores</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.importacoes') }}">Importações</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.home') }}">Resumo Resultados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.colaboradores') }}">Cadastro de colaboradores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.importacoes') }}">Lançamento de dados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.feedback_funcionario') }}">Feedback Funcionário</a></li>
                 </ul>
             </div>
         </div>

@@ -1,11 +1,126 @@
+/* Global Styles */
 body {
-    background-color: #f8f9fa;
+    background-color: #f8f9fa; /* Cor de fundo suave */
+    font-family: 'Roboto', sans-serif;
+    color: #343a40;
 }
 
-h2 {
-    color: #007bff;
+/* Navbar */
+.navbar {
+    background-color: #007bff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: #fff !important;
+}
+
+.nav-link {
+    color: #fff !important;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #ffd700 !important;
+}
+
+/* Cards, Forms e Tabelas */
+.card, .form-control, .btn, .table {
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Botões */
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+/* Tabelas */
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1;
 }
 
 .table th {
-    text-align: center;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* Formulários */
+.form-label {
+    font-weight: bold;
+}
+
+input[type="date"], input[type="number"], select, .form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Animações Suaves */
+.btn, .form-control, .nav-link {
+    transition: all 0.3s ease;
+}
+
+/* Toasts e Alertas */
+.toast {
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.toast.success {
+    background-color: #28a745;
+}
+
+.toast.error {
+    background-color: #dc3545;
+}
+
+/* Sombras e Estilos Adicionais */
+.shadow {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.mt-5 {
+    margin-top: 3rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* Cabeçalhos */
+h2, h3 {
+    color: #343a40;
+    font-weight: bold;
 }

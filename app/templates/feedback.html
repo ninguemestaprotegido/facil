@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Feedback Funcionário</h2>
+
+<!-- 📌 Filtros -->
+<form method="GET" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="nome" class="form-control" placeholder="Nome (opcional)" value="{{ request.args.get('nome', '') }}">
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="data_inicial" class="form-control" value="{{ request.args.get('data_inicial', '') }}">
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="data_final" class="form-control" value="{{ request.args.get('data_final', '') }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</form>
+
+<!-- 📌 Exibição da média -->
+{% if media is not none %}
+<p class="alert alert-info">Média do período selecionado: <strong>{{ "%.2f" | format(media) }}%</strong></p>
+{% else %}
+<p class="alert alert-warning">Nenhum dado encontrado para o período selecionado.</p>
+{% endif %}
+
+<!-- 📌 Tabela de Resultados -->
+<table class="table table-bordered mt-4" id="feedbackTable">
+    <thead class="table-dark">
+        <tr>
+            <th onclick="sortTableByDate(0)" style="cursor: pointer;">
+                Data &#x21C5; <!-- Ícone de ordenação -->
+            </th>
+            <th>Funcionário</th>
+            <th>Cargo</th>
+            <th>Refile (%)</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for resultado in resultados %}
+        <tr>
+            <td>{{ resultado.data.strftime('%d/%m/%Y') }}</td>
+            <td>{{ resultado.nome }}</td>
+            <td>{{ resultado.cargo }}</td>
+            <td>
+                <span style="height: 10px; width: 10px; display: inline-block; border-radius: 50%; margin-right: 8px; background-color: 
+                    {% if resultado.refile >= 70 %} green 
+                    {% elif 60 <= resultado.refile < 70 %} yellow 
+                    {% else %} red {% endif %};">
+                </span>
+                {{ "%.2f" | format(resultado.refile) }}
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('main.delete_result', id=resultado.id) }}" onsubmit="return confirm('Vai deletar mesmo?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- JavaScript para ordenação -->
+<script>
+let isAscending = true;
+
+function sortTableByDate(colIndex) {
+    const table = document.getElementById("feedbackTable");
+    const rows = Array.from(table.rows).slice(1); // Remove o cabeçalho
+
+    rows.sort((a, b) => {
+        const dateA = new Date(a.cells[colIndex].innerText.split('/').reverse().join('-'));
+        const dateB = new Date(b.cells[colIndex].innerText.split('/').reverse().join('-'));
+
+        return isAscending ? dateA - dateB : dateB - dateA;
+    });
+
+    isAscending = !isAscending; // Alterna entre crescente e decrescente
+
+    // Atualiza a tabela
+    const tbody = table.querySelector("tbody");
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
+
+{% endblock %}
