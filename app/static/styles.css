@@ -1,57 +1,101 @@
 /* Global Styles */
 body {
-    background-color: #f8f9fa; /* Cor de fundo suave */
-    font-family: 'Roboto', sans-serif;
-    color: #343a40;
-}
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7fc;
+}  #OK
 
-/* Navbar */
+
+/* Navbar */   #ALTERARAAAAAAAAAAAAAAAAAAR
 .navbar {
-    background-color: #007bff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    padding: 15px;
+} #OK
 
 .navbar-brand {
+    font-size: 1.4rem;
     font-weight: bold;
-    color: #fff !important;
-}
+} #OK
 
 .nav-link {
-    color: #fff !important;
-    transition: color 0.3s ease;
+    color: white !important;
+    font-weight: 500;
 }
+#OK
 
 .nav-link:hover {
     color: #ffd700 !important;
+} #OK
+ 
+/* Cards, Forms e Tabelas */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Cards, Forms e Tabelas */
-.card, .form-control, .btn, .table {
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+#nova
+/* Destacando as métricas */
+.alert {
+    border-radius: 10px;
+    font-weight: bold;
 }
+
+
+#isolado
+/* Cards*/
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background: white;
+}
+
+#form-control
+/* Campos de input melhorados */
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+}
+
 
 /* Botões */
 .btn-primary {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #0056b3);
     border: none;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    color: white;
+}
+
+#adicionado
+.btn {
+    border-radius: 8px;
+    transition: transform 0.2s, background-color 0.3s ease-in-out;
+}
+
+#adcionado
+
+.btn:hover {
+    transform: scale(1.05);
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #0056b3, #004085);
 }
 
 .btn-success {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #218838);
     border: none;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    color: white;
 }
 
 .btn-success:hover {
-    background-color: #218838;
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #218838, #1e7e34);
 }
 
 /* Tabelas */
@@ -67,6 +111,18 @@ body {
 .table td, .table th {
     vertical-align: middle;
 }
+
+  #novo
+/* Ajuste nos cards de Top 3 e Last 3 */
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 6px;
+    font-size: 1rem;
+    padding: 12px;
+}
+
 
 /* Formulários */
 .form-label {
@@ -124,3 +180,69 @@ h2, h3 {
     color: #343a40;
     font-weight: bold;
 }
+
+ /* mobile */
+@media (max-width: 768px) {
+    .row.g-3 .col-md-3, 
+    .row.g-3 .col-md-2 {
+        width: 100%; /* Garante que os campos ocupem toda a largura em telas pequenas */
+    }
+
+    .btn {
+        width: 100%; /* Faz os botões ocuparem toda a largura da tela */
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    } 
+}
+
+
+/* Centraliza a tela de login */
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border-radius: 10px;
+    padding: 20px;
+    background: white;
+}
+
+/* Ajuste nos inputs */
+.form-control {
+    border-radius: 6px;
+}
+
+/* Botão de login */
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+}
+
+/* Link de cadastro */
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+/* Ajuste no botão de registro */
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #218838);
+    border: none;
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+}
+

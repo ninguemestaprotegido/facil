@@ -1,6 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="mb-4">Resumo Resultados</h2>
+<h3>Usuários Registrados</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome de Usuário</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>
+                <form action="{{ url_for('auth.delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');">
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 
 <!-- 📌 Filtros -->
 <form method="GET" class="row g-3 mb-4">
@@ -11,13 +35,15 @@
         <input type="text" name="cargo" class="form-control" placeholder="Cargo (opcional)" value="{{ request.args.get('cargo', '') }}">
     </div>
     <div class="col-md-3">
-        <input type="date" name="data_inicial" class="form-control" value="{{ request.args.get('data_inicial', '') }}">
+        <input type="date" name="data_inicial" class="form-control" placeholder="Data Inicial" value="{{ request.args.get('data_inicial', '') }}">
     </div>
     <div class="col-md-3">
-        <input type="date" name="data_final" class="form-control" value="{{ request.args.get('data_final', '') }}">
+        <input type="date" name="data_final" class="form-control" placeholder="Data Final" value="{{ request.args.get('data_final', '') }}">
     </div>
     <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner"></span>
+        
     </div>
 </form>
 
@@ -27,7 +53,9 @@
     <input type="hidden" name="cargo" value="{{ request.args.get('cargo', '') }}">
     <input type="hidden" name="data_inicial" value="{{ request.args.get('data_inicial', '') }}">
     <input type="hidden" name="data_final" value="{{ request.args.get('data_final', '') }}">
-    <button type="submit" class="btn btn-outline-success">Exportar para Excel</button>
+    <button type="submit" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> Exportar para Excel
+    </button>
 </form>
 
 <!-- 📌 Exibição da média geral -->
@@ -62,33 +90,27 @@
 </div>
 
 <!-- 📌 Tabela com Média por Funcionário -->
-<table class="table table-bordered mt-4" id="resumoTable">
-    <thead class="table-dark">
-        <tr>
-            <th>Funcionário</th>
-            <th>Cargo</th>
-            <th onclick="sortTableByRefile()" style="cursor: pointer;">
-                Média Refile (%) <span id="sortIcon">⇅</span>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for colaborador in medias_colaboradores %}
-        <tr>
-            <td>{{ colaborador.nome }}</td>
-            <td>{{ colaborador.cargo }}</td>
-            <td>
-                <span style="height: 10px; width: 10px; display: inline-block; border-radius: 50%; margin-right: 8px; background-color: 
-                    {% if colaborador.media_refile >= 70 %} green 
-                    {% elif 60 <= colaborador.media_refile < 70 %} yellow 
-                    {% else %} red {% endif %};">
-                </span>
-                {{ "%.2f" | format(colaborador.media_refile) }}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="table-responsive">
+    <table class="table table-bordered mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>Funcionário</th>
+                <th>Cargo</th>
+                <th>Média Refile (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for colaborador in medias_colaboradores %}
+            <tr>
+                <td>{{ colaborador.nome }}</td>
+                <td>{{ colaborador.cargo }}</td>
+                <td>{{ "%.2f" | format(colaborador.media_refile) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 
 <!-- JavaScript para ordenação -->
 <script>
@@ -113,4 +135,10 @@ function sortTableByRefile() {
 }
 </script>
 
+<script>
+    document.querySelector("form").addEventListener("submit", function() {
+        document.getElementById("loadingSpinner").classList.remove("d-none");
+    });
+    </script>
+    
 {% endblock %}

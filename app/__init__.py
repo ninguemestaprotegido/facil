@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -6,6 +7,9 @@ from sqlalchemy.exc import OperationalError
 
 db = SQLAlchemy()
 migrate = Migrate()
+
+logging.basicConfig(filename='app.log', level=logging.INFO)
+
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
@@ -28,11 +32,16 @@ def create_app():
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix='/auth')
 
+    #@app.before_request
+    #def check_user_logged_in():
+     #   open_endpoints = ['auth.login', 'auth.register']
+      #  if 'user_id' not in session and request.endpoint not in open_endpoints:
+       #     return redirect(url_for('auth.login'))
+        
     @app.before_request
-    def check_user_logged_in():
-        open_endpoints = ['auth.login', 'auth.register']
-        if 'user_id' not in session and request.endpoint not in open_endpoints:
-            return redirect(url_for('auth.login'))
+    def log_requests():
+     logging.info(f"Acesso em: {request.path} | Método: {request.method}")
+
 
     # Aplicar as migrações automaticamente
     with app.app_context():

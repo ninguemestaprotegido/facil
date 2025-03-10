@@ -1,5 +1,5 @@
 from flask import Blueprint, session, render_template, request, redirect, url_for, send_file
-from app.models import Importacao, Colaborador, db
+from app.models import Importacao, Colaborador, db, User
 from sqlalchemy import func
 import datetime
 from io import BytesIO
@@ -9,7 +9,6 @@ from flask import send_file
 import os
 
 main = Blueprint('main', __name__)
-
 
 # Página HOME (filtros, TOP 3, média)
 @main.route('/', methods=['GET'])
@@ -47,7 +46,10 @@ def home():
 
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
+        
 
+        
+        
     # Cálculo da média geral
     media = sum([c.media_refile for c in medias_colaboradores]) / len(medias_colaboradores) if medias_colaboradores else None
 
@@ -63,8 +65,7 @@ def home():
         last_3=last_3,
         ordenar=ordenar
     )
-
-
+ 
 # Botao pra deletar coisas adicionadas de forma errada no home
 @main.route('/delete/<int:id>', methods=['POST'])
 def delete_result(id):
@@ -240,3 +241,4 @@ def feedback_funcionario():
         resultados=resultados,
         media=media
     )
+
